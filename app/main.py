@@ -6,7 +6,12 @@ def create_message(id):
 
 def handle_client(client):
     req = client.recv(1024)
+    print(req)
     coRelationId = int.from_bytes(req[8:12], byteorder="big")
+
+    if coRelationId > 4:
+        raise Exception("Invalid coRelationId")
+
     client.sendall(create_message(coRelationId))
     client.close()
 
