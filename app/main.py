@@ -11,6 +11,7 @@ def create_error_message(coRelationId, error_code):
 def handle_client(client):
     req = client.recv(1024)
     acceptApiVersion = [0,1,2,3,4]
+    print(req)
     api_version = int.from_bytes(req[6:8], byteorder="big")
     coRelationId = int.from_bytes(req[8:12], byteorder="big")
 
