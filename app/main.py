@@ -32,13 +32,15 @@ def create_message(coRelationId, api_key, error_code):
 
 
 def handle_client(client):
-    req = client.recv(1024)
-    error_code = check_api_version(int.from_bytes(req[6:8], byteorder="big"))
-    api_key = int.from_bytes(req[4:6], byteorder="big")
-    coRelationId = int.from_bytes(req[8:12], byteorder="big")
+    while True:
+        req = client.recv(1024)
+        if len(req) == 0:
+            break
+        error_code = check_api_version(int.from_bytes(req[6:8], byteorder="big"))
+        api_key = int.from_bytes(req[4:6], byteorder="big")
+        coRelationId = int.from_bytes(req[8:12], byteorder="big")
 
-    client.sendall(create_message(coRelationId, api_key, error_code))
-    client.close()
+        client.sendall(create_message(coRelationId, api_key, error_code))
 
 
 def main():
