@@ -1,29 +1,44 @@
 import socket  # noqa: F401
 
-def create_message(id):
-    id_bytes = id.to_bytes(4, byteorder="big")
-    return len(id_bytes).to_bytes(4, byteorder="big") + id_bytes
+def check_api_version(api_version):
+    acceptApiVersion = [0, 1, 2, 3, 4]
+    if api_version not in acceptApiVersion:
+        print('API version not supported')
+        return 35
+    return 0
 
-def create_error_message(coRelationId, error_code):
-    message = coRelationId.to_bytes(4, byteorder="big") + error_code.to_bytes(2, byteorder="big")
-    return len(message).to_bytes(4, byteorder="big") + message
+
+def create_message(coRelationId, api_key, error_code):
+    response_header = coRelationId.to_bytes(4)
+
+    min_version = 0
+    max_version = 4
+    tag_buffer = b"\x00"
+    throttle_time_ms = 0
+
+    response_body = (
+        error_code.to_bytes(2)
+        + int(2).to_bytes(1)
+        + api_key.to_bytes(2)
+        + min_version.to_bytes(2)
+        + max_version.to_bytes(2)
+        + tag_buffer
+        + throttle_time_ms.to_bytes(4)
+        +tag_buffer
+    )
+
+    response_lenght = len(response_header) + len(response_body)
+    return response_lenght.to_bytes(4) + response_header + response_body
+
 
 def handle_client(client):
     req = client.recv(1024)
-    acceptApiVersion = [0,1,2,3,4]
-    print(req)
-    api_version = int.from_bytes(req[6:8], byteorder="big")
+    error_code = check_api_version(int.from_bytes(req[6:8], byteorder="big"))
+    api_key = int.from_bytes(req[4:6], byteorder="big")
     coRelationId = int.from_bytes(req[8:12], byteorder="big")
 
-    if api_version not in acceptApiVersion:
-        print('api_version not in acceptApiVersion')
-        error_code = 35
-        client.sendall(create_error_message(coRelationId, error_code))
-        client.close()
-        return
+    client.sendall(create_message(coRelationId, api_key, error_code))
 
-    client.sendall(create_message(coRelationId))
-    client.close()
 
 def main():
     print("Logs from your program will appear here!")
@@ -33,7 +48,6 @@ def main():
     while True:
         client, addr = server.accept()
         handle_client(client)
-
 
 if __name__ == "__main__":
     main()
