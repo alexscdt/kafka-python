@@ -38,6 +38,7 @@ def handle_client(client):
     coRelationId = int.from_bytes(req[8:12], byteorder="big")
 
     client.sendall(create_message(coRelationId, api_key, error_code))
+    client.close()
 
 
 def main():
