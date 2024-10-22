@@ -1,4 +1,5 @@
 import socket  # noqa: F401
+import threading
 
 def check_api_version(api_version):
     acceptApiVersion = [0, 1, 2, 3, 4]
@@ -50,7 +51,7 @@ def main():
 
     while True:
         client, addr = server.accept()
-        handle_client(client)
+        threading.Thread(target=handle_client, args=(client,)).start()
 
 if __name__ == "__main__":
     main()
